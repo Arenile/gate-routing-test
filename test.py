@@ -1,6 +1,10 @@
+import requests
+
 TILES_PER_FIELD_X = 8
 TILES_PER_FIELD_Y = 8
 MAX_HEIGHT_LEVELS = 4
+
+ELEVATION_ENDPOINT = "http://34.174.221.76"
 
 #actual gate placement function
 #@app.route("/place-gate", methods=['GET'])
@@ -57,8 +61,6 @@ def tileGates(field_id : int):
     print("tile_widt = " + str(tile_width))
     print("tile_height = " + str(tile_height))
 
-	# normalize heights
-
     print("BELOW THIS IS THE TILES_DICT \n")
 
     tiles_dict: dict[int: [str, str]] = {}
@@ -89,7 +91,47 @@ def tileGates(field_id : int):
 
     # go get heights of every tile in dict and add to tiles_dict
 
+    for i in range(TILES_PER_FIELD_X * TILES_PER_FIELD_Y):
+        
+        url = ELEVATION_ENDPOINT + "/api/v1/lookup?locations=" + \
+        tiles_dict[i]["sw_point"].split('|')[0] + "," + \
+        tiles_dict[i]["sw_point"].split('|')[1]
+
+        print("url_test = " + url)
+
+        response = requests.get(url)
+
+        if (response.status_code == 200):
+            data = {}
+            data = response.json()
+
+            print(data)
+
+            tiles_dict[i]["elevation"] = data['results'][0]['elevation']
+
+    print("tiles post elevation... \n")
+    print(tiles_dict)
+
+    # normalize heights
+
+    height_set : set = set([])
+
+    for tile in tiles_dict:
+        height_set.add(tiles_dict[tile]["elevation"])
+
+    print("height set = ", str(height_set))
+
+    height_set: set = set(sorted(height_set))
+
+    print("sorted heights = " + str(height_set))
+
+    while (len(height_set) > MAX_HEIGHT_LEVELS):
+        height_set[0] = (height_set[0] + height_set[1]) / 2
+        height_set.remove(height_set[1])
+
     
+    
+
 
 	# build json response object of tiles
     
