@@ -6,6 +6,10 @@ MAX_HEIGHT_LEVELS = 4
 
 ELEVATION_ENDPOINT = "http://34.174.221.76"
 
+# Grabbed this from Geeks4Geeks because I don't need to write this myself
+def closest(lst, K):
+    return lst[min(range(len(lst)), key = lambda i: abs(lst[i]-K))]
+
 #actual gate placement function
 #@app.route("/place-gate", methods=['GET'])
 def tileGates(field_id : int):
@@ -129,11 +133,28 @@ def tileGates(field_id : int):
         height_set[0] = (height_set[0] + height_set[1]) / 2
         height_set.remove(height_set[1])
 
-    
-    
-
-
 	# build json response object of tiles
+
+    for tile in tiles_dict:
+        closest_val = closest(list(height_set), tiles_dict[tile]["elevation"])
+        tiles_dict[tile]["height_val"] = list(height_set).index(closest_val)
+    
+    print("FINAL TILES DICT = \n\n\n")
+    print(tiles_dict)
+
+    print("VISUAL\n\n")
+    print("this is", end="")
+    print(" a test")
+
+    for i in range(TILES_PER_FIELD_Y):
+        for j in range(TILES_PER_FIELD_X):
+            if (tiles_dict[i*TILES_PER_FIELD_X +j]["height_val"] == 0): 
+                print("\033[1;32mO", end="")
+            elif (tiles_dict[i*TILES_PER_FIELD_X +j]["height_val"] == 1):
+                print("\033[1;33mO", end="")
+            else:
+                print("\033[1;34mO", end="")
+        print("")
     
 tileGates(1)
 
